@@ -170,3 +170,17 @@ pub fn html_headers(cookie: &str) -> Result<HeaderMap> {
     );
     Ok(headers)
 }
+
+/// Headers for the opencode.ai `/console/api/*` SPA backend. The session
+/// cookie (`__Host-console_session`) authenticates the request; scoped
+/// endpoints additionally require the workspace/organisation id.
+pub fn console_api_headers(cookie: &str, org_id: Option<&str>) -> Result<HeaderMap> {
+    let mut headers = cookie_header(cookie)?;
+    if let Some(org) = org_id {
+        headers.insert(
+            "x-org-id",
+            HeaderValue::from_str(org).context("invalid org id header")?,
+        );
+    }
+    Ok(headers)
+}

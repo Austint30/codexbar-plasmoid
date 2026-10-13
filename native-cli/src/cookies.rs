@@ -26,7 +26,15 @@ const CURSOR_COOKIE_NAMES: &[&str] = &[
     "__Secure-authjs.session-token",
 ];
 const OPENCODE_DOMAINS: &[&str] = &["opencode.ai", "app.opencode.ai"];
-const OPENCODE_COOKIE_NAMES: &[&str] = &["auth", "__Host-auth"];
+// opencode.ai migrated to a `/console/` SPA: the session cookie is now
+// `__Host-console_session` (legacy `auth` / `__Host-auth` names are kept for
+// older logins and manual configs).
+const OPENCODE_COOKIE_NAMES: &[&str] = &[
+    "auth",
+    "__Host-auth",
+    "__Host-console_session",
+    "console_session",
+];
 const GROK_DOMAINS: &[&str] = &["grok.com", "www.grok.com", "x.ai", "accounts.x.ai"];
 const GROK_COOKIE_NAMES: &[&str] = &["sso", "sso-rw"];
 
@@ -84,7 +92,8 @@ pub fn resolve_all_cookie_headers(provider_id: &str) -> Vec<CookieResolution> {
     let mut out = Vec::new();
     let mut seen = HashSet::new();
 
-    // Strict name match first (proper `auth`/`__Host-auth` cookies).
+    // Strict name match first (proper `auth`/`__Host-auth` or console
+    // `__Host-console_session` cookies).
     for store in &stores {
         if let Some(header) = read_cookie_header_from_store(store, provider_id, true) {
             let filtered = filter_provider_cookies(&header, provider_id);
